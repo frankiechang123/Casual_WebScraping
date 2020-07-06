@@ -79,7 +79,7 @@ while(start <= 250):
 
     start += 25
 
-with open("movies.csv", "w", newline="", encoding="utf-8") as csvfile:
+with open("Douban250.csv", "w", newline="", encoding="utf-8") as csvfile:
     catagories = ["rank", "name", "director", "time",
                   "origin", "genre", "rating", "num_review", "url"]
     writer = csv.DictWriter(csvfile, catagories)
