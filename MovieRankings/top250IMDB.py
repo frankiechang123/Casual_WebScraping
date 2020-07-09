@@ -1,4 +1,5 @@
 import requests
+import re
 from bs4 import BeautifulSoup
 
 URL="https://www.imdb.com/chart/top/"
@@ -42,7 +43,11 @@ obj["length"]=length
 obj["genre"]=genre
 obj["release"]=release
 
-print(movieList[0])
+slate_wrapper=moviePage.find("div",class_="slate_wrapper")
+poster=imdbURL+slate_wrapper.div.a["href"]
+trailer=imdbURL+slate_wrapper.find("div",class_=re.compile("videoPreview.*")).div.a["href"]
+print(poster)
+print(trailer)
 
 
 
