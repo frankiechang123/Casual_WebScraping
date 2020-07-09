@@ -46,8 +46,26 @@ obj["release"]=release
 slate_wrapper=moviePage.find("div",class_="slate_wrapper")
 poster=imdbURL+slate_wrapper.div.a["href"]
 trailer=imdbURL+slate_wrapper.find("div",class_=re.compile("videoPreview.*")).div.a["href"]
-print(poster)
-print(trailer)
+
+summary=moviePage.find("div",class_="plot_summary")
+summary_children=[child for child in summary.children]
+
+plot=summary_children[1].string.strip()
+director=summary_children[3].a.string
+writers=summary_children[5].find_all("a")
+temp=""
+for i,writer in enumerate(writers):
+    temp+=writer.string
+    if(not i==len(writers)-1):
+        temp+=" | "
+    
+writers=temp
+
+print(plot)
+print(writers)
+print(director)
+
+
 
 
 
