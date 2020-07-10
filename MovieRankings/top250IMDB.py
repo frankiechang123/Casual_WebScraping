@@ -1,6 +1,7 @@
 import requests
 import re
 from bs4 import BeautifulSoup
+import csv
 
 URL="https://www.imdb.com/chart/top/"
 imdbURL="https://www.imdb.com"
@@ -23,48 +24,82 @@ for row in tableRows:
     movieList.append({"rank":rank,"title":title,"link":link})
 
 #look into each link
-#for obj in movieList:
-obj=movieList[0]
-link=obj["link"]
-moviePage=requests.get(link)
-print(moviePage.status_code)
-print(moviePage.url)
-moviePage=BeautifulSoup(moviePage.text,"html.parser")
-overview=moviePage.find("div",class_="heroic-overview")
-year=overview.find("span",attrs={"id":"titleYear"}).string
-overview=[string for string in overview.find(class_="subtext").stripped_strings]
+for obj in movieList:
+    link=obj["link"]
+    moviePage=requests.get(link)
+    print(moviePage.status_code)
+    print(moviePage.url)
 
-rate=overview[0]
-length=overview[2]
-genre=overview[4]
-release=overview[6]
-obj["rate"]=rate
-obj["length"]=length
-obj["genre"]=genre
-obj["release"]=release
+    moviePage=BeautifulSoup(moviePage.text,"html.parser")
+    overview=moviePage.find("div",class_="heroic-overview")
+    year=overview.find("span",attrs={"id":"titleYear"}).string
+    overview=[string for string in overview.find(class_="subtext").stripped_strings]
 
-slate_wrapper=moviePage.find("div",class_="slate_wrapper")
-poster=imdbURL+slate_wrapper.div.a["href"]
-trailer=imdbURL+slate_wrapper.find("div",class_=re.compile("videoPreview.*")).div.a["href"]
 
-summary=moviePage.find("div",class_="plot_summary")
-summary_children=[child for child in summary.children]
+    rate=overview[0]
+    length=overview[2]
+    genre=overview[4]
+    release=overview[6]
+    obj["rate"]=rate
+    obj["length"]=length
+    obj["genre"]=genre
+    obj["release"]=release
 
-plot=summary_children[1].string.strip()
-director=summary_children[3].a.string
-writers=summary_children[5].find_all("a")
-temp=""
-for i,writer in enumerate(writers):
-    temp+=writer.string
-    if(not i==len(writers)-1):
-        temp+=" | "
+
+    slate_wrapper=moviePage.find("div",class_="slate_wrapper")
+    try:
+        poster=imdbURL+slate_wrapper.div.a["href"]
+    except:
+        poster=""
+    try:
+        trailer=imdbURL+slate_wrapper.find("div",class_=re.compile("videoPreview.*")).div.a["href"]
+    except :
+        trailer=""
+    summary=moviePage.find("div",class_="plot_summary")
+    summary_children=[child for child in summary.children]
+    try:
+        plot=summary_children[1].string.strip()
+    except :
+        plot=""
+    director=summary_children[3].a.string
+    writers=summary_children[5].find_all("a")
+    try:
+        temp=""
+        for i,writer in enumerate(writers):
+            temp+=writer.string
+            if(not i==len(writers)-1):
+                temp+=" | "
+            
+        writers=temp
+    except:
+        writers=""
     
-writers=temp
+    try:
+        stars=summary_children[7].find_all("a")
+        temp=""
+        for i,star in enumerate(stars):
+            if(i==len(stars)-1):
+                break
+            temp+=star.string
+            if(not i==len(stars)-2):
+                temp+=" | "
+        stars=temp
 
-print(plot)
-print(writers)
-print(director)
+    except:
+        stars=""
+    
+    obj["poster"]=poster
+    obj["trailer"]=trailer
+    obj["plot"]=plot
+    obj["writers"]=writers
+    obj["director"]=director
+    obj["stars"]=stars
 
+
+with open("imdb_top250.csv","w", newline="") as csvfile:
+    catagories=["rank","title","link","rate","length","genre","release","poster","trailer","plot","writers","director","stars"]
+    writer=csv.DictWriter(csvfile,catagories)
+    writer.writerows(movieList)
 
 
 
